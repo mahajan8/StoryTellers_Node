@@ -1,22 +1,31 @@
 var MongoClient = require('mongodb').MongoClient;
-var url = "mongodb+srv://mahajan:mongo@cluster0-u9qv8.mongodb.net/test?retryWrites=true&w=majority";
+var url = "mongodb+srv://mahajan:mongo@cluster0-0utu1.mongodb.net/test?retryWrites=true&w=majority";
+
+
+// var url = "mongodb://localhost:27017/mydb";
 
 MongoClient.connect(url, function(err, db) {
-    if (err) throw err;
-    var dbo = db.db("mydb");
-    var myobj = [
-        { detail: "Detail", name: 'Name', age: "22" },
-        { detail: "Detail", name: 'Name', age: "22" },
-        { detail: "Detail", name: 'Name', age: "21" },
-    ];
+  if (err) throw err;
+  console.log("Database created!");
+  db.close();
+});
 
-let user = {name: 'Sarthak'}
-dbo.collection("customers").find(user).sort({age:-1}).toArray( function(err, res) {
-    if (err) throw err;
-    console.log(res);
-    db.close();
-});
-});
+// MongoClient.connect(url, options , function(err, db) {
+//     if (err) throw err;
+//     var dbo = db.db("mydb");
+//     var myobj = [
+//         { detail: "Detail", name: 'Name', age: "22" },
+//         { detail: "Detail", name: 'Name', age: "22" },
+//         { detail: "Detail", name: 'Name', age: "21" },
+//     ];
+
+// let user = {name: 'Sarthak'}
+// dbo.collection("customers").find(user).sort({age:-1}).toArray( function(err, res) {
+//     if (err) throw err;
+//     console.log(res);
+//     db.close();
+// });
+// });
 
 
 // JOIN

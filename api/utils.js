@@ -1,4 +1,4 @@
-var bcrypt = require('bcrypt');
+var bcrypt = require('bcryptjs');
 
 exports.encryptPass = (password, callback) => {
     try {
@@ -32,10 +32,88 @@ exports.comparePass = (password, hash, callback) => {
 
 
 exports.checkParams = async (params, callback) => {
-    Object.keys(params).map(key=>{
-        if (!params[key]) {
-            callback(true, key)
+
+    let bool = false
+    let par = ''
+
+    if(Object.keys(params).length==0) {
+        bool = false
+        return;
+    } else {
+       
+        let keys = Object.keys(params)
+
+        for(let i = 0; i<keys.length; i++) {
+            if(!params[keys[i]]) {
+                bool = true
+                par = keys[i]
+                break;
+            }
         }
+
+        callback(bool, par)
+    }
+}
+
+// exports.getNextSequence = (db, name, callback) => {
+
+//     let collection = db.collection("counters")
+
+//     collection.findOne({_id : name}, (error, result) => {
+//         if(error) callback(error, result);
+
+//         if(!result) {
+
+//             let item = {
+//                 _id: name,
+//                 seq: 1
+//             }
+
+//             collection.insertOne(item, (err, result) => {
+//                 if(err) callback(err, result);
+//                 callback(err, 0);
+//             });
+            
+//         } else {
+//             collection.findAndModify( { _id: name }, null, { $inc: { seq: 1 } }, function(err, result){
+//                 if(err) callback(err, result);
+//                 callback(err, result.value.seq);
+//             } );
+//         }
+//     })
+
+    
+// }
+
+exports.getNextSequence = (db, name) => {
+
+    return new Promise((resolve, reject)=>{
+        let collection = db.collection("counters")
+
+        collection.findOne({_id : name}, (error, result) => {
+            if(error) reject(error);
+    
+            if(!result) {
+    
+                let item = {
+                    _id: name,
+                    seq: 1
+                }
+    
+                collection.insertOne(item, (err, result) => {
+                    if(err) reject(err);
+                    resolve(0);
+                });
+                
+            } else {
+                collection.findAndModify( { _id: name }, null, { $inc: { seq: 1 } }, function(err, result){
+                    if(err) reject(err);
+                    resolve(result.value.seq);
+                } );
+            }
+        })
     })
-    callback(false)
+    
+
+    
 }

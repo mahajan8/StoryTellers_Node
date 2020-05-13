@@ -4,10 +4,11 @@
   "description": "\"API\"",
   "main": "main.js",
   "dependencies": {
-    "bcrypt": "^3.0.7",
+    "@types/mongodb": "^3.5.10",
+    "bcryptjs": "^2.4.3",
     "express": "^4.17.1",
     "formidable": "^1.2.1",
-    "mongodb": "^3.4.1",
+    "mongodb": "^3.5.5",
     "mongoose": "^5.8.6",
     "nodemon": "^2.0.2"
   },
