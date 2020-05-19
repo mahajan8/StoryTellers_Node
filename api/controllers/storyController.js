@@ -36,6 +36,7 @@ exports.addStory = function(req, res) {
                         _id: id,
                         userId : Number(userId),
                         story: req.body.story,
+                        createdAt: new Date()
                     }
     
                     collection.insertOne(storylist, (error, result) => {
@@ -105,7 +106,7 @@ exports.addStoryReply = function(req, res) {
             .catch(err=>{throw err})
         })
     } catch(err) {
-        res.status(500).send({status: false, message: 'Error Adding Story.'});
+        res.status(500).send({status: false, message: 'Error Adding Story Response.'});
     }
 }
 
@@ -134,7 +135,8 @@ exports.getStories = function(req, res) {
                     ]
                 }
             },
-            {$unwind: '$userInfo'}
+            {$unwind: '$userInfo'},
+            {$sort: {views:-1}}
             ]).toArray((err, response)=> {
             if(err) throw err;
 
@@ -145,7 +147,7 @@ exports.getStories = function(req, res) {
         
 
     } catch(err) {
-        res.status(500).send({status: false, message: 'Error Adding Story.'});
+        res.status(500).send({status: false, message: 'Could not fetch Stories. Try again later.'});
     }
 }
 
@@ -203,7 +205,7 @@ exports.getStoryDetails = function(req, res) {
         
 
     } catch(err) {
-        res.status(500).send({status: false, message: 'Error Adding Story.'});
+        res.status(500).send({status: false, message: 'Error fetching story, try again later.'});
     }
 }
 
@@ -223,7 +225,7 @@ exports.getMyStories = function(req, res) {
         let collection = db.collection('storylist')
         let profile = db.collection('userProfile')
 
-        profile.findOne({user_id : Number(userId)}, (error, result) => {
+        profile.findOne({user_id : Number(userId)}, async (error, result) => {
             if(error) {
                 throw error
             }
@@ -235,7 +237,7 @@ exports.getMyStories = function(req, res) {
                 let favorites=[]
 
                 collection.aggregate([
-                    { $match: {_id: {$in: fav}} },
+                    { $match: {$or: [ {_id: {$in: fav}}, {userId: Number(userId)} ]} },
                     { $lookup:
                         {
                             from: 'userProfile',
@@ -254,40 +256,13 @@ exports.getMyStories = function(req, res) {
                         }
                     },
                     {$unwind: '$userInfo'}
-                    ]).toArray((err, response)=> {
-                        if(err) throw err;
-
-                        favorites = response
-                    })
-
-                collection.aggregate([
-                    { $match: {userId: Number(userId)} },
-                    { $lookup:
-                        {
-                            from: 'userProfile',
-                            let: {userId: '$userId'} ,
-                            as: 'userInfo',
-                            pipeline: [
-                                {$match: {'$expr': {'$eq': ['$user_id', '$$userId']}}},
-
-                                {$project: {
-                                    _id: 0, 
-                                    name : {"$concat": [ "$firstName", " ", "$lastName"]}, 
-                                    profilePic:1, 
-                                    user_id:1
-                                }}
-                            ]
-                        }
-                    },
-                    {$unwind: '$userInfo'}
-                    ]).toArray((err, response)=> {
+                ]).toArray((err, response)=> {
                     if(err) throw err;
 
-                    myStories=response
+                    favorites = response.filter(obj=> fav.includes(obj._id))
+                    myStories = response.filter(obj=> userId==obj.userId)
+                    res.send({status: true, response: { myStories: myStories, favorites: favorites }})
                 })
-
-
-                res.send({status: true, response: { myStories: myStories, favorites: favorites }})
             }
         });
 
@@ -295,58 +270,9 @@ exports.getMyStories = function(req, res) {
         
 
     } catch(err) {
-        res.status(500).send({status: false, message: 'Error Adding Story.'});
+        res.status(500).send({status: false, message: 'Error Getting Stories.'});
     }
 }
-
-// exports.getMyStories = function(req, res) {
-
-//     try {
-
-//         const {userId} = req.body
-
-//         Utils.checkParams({ userId}, (err, param)=>{
-//             if(err) {
-//                 res.status(500).send({status: false, message: `${param} Required`});
-//                 return;
-//             }
-
-//         let db = req.app.locals.db
-//         let collection = db.collection('storylist')
-
-//         collection.aggregate([
-//             { $match: {userId: Number(userId)} },
-//             { $lookup:
-//                 {
-//                     from: 'userProfile',
-//                     let: {userId: '$userId'} ,
-//                     as: 'userInfo',
-//                     pipeline: [
-//                         {$match: {'$expr': {'$eq': ['$user_id', '$$userId']}}},
-
-//                         {$project: {
-//                             _id: 0, 
-//                             name : {"$concat": [ "$firstName", " ", "$lastName"]}, 
-//                             profilePic:1, 
-//                             user_id:1
-//                         }}
-//                     ]
-//                 }
-//             },
-//             {$unwind: '$userInfo'}
-//             ]).toArray((err, response)=> {
-//             if(err) throw err;
-
-//             res.send({status: true, response: response})
-//         })
-
-//     })
-        
-
-//     } catch(err) {
-//         res.status(500).send({status: false, message: 'Error Adding Story.'});
-//     }
-// }
 
 exports.toggleFavorite = function(req, res) {
 
@@ -398,7 +324,7 @@ exports.toggleFavorite = function(req, res) {
         
 
     } catch(err) {
-        res.status(500).send({status: false, message: 'Error Adding Story.'});
+        res.status(500).send({status: false, message: 'Could not toggle favorite.'});
     }
 }
 

@@ -1,4 +1,5 @@
 var Utils = require('../utils')
+var upload = require('../services/file-upload')
 
 exports.getProfile = function(req, res) {
 
@@ -65,3 +66,21 @@ exports.editProfile = function(req, res) {
         res.status(500).send({status: false, message: 'Something went wrong'});
     }
 }
+
+exports.uploadPic = function(req, res) {
+    try {
+        console.log(req)
+
+        var singleUpload = upload.single('image')
+
+        singleUpload(req,res, (err) => {
+            if(err) throw err;
+
+            res.send({imageUrl: req.file.location})
+        })
+
+    } catch(err) {
+        res.status(500).send({status: false, message: err});
+    }
+}
+

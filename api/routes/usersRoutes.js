@@ -37,7 +37,8 @@ module.exports = function(app) {
     app.route('/toggleFavorite')
     .post(storyController.toggleFavorite);
 
-
+    app.route('/uploadImage')
+    .post(profileController.uploadPic)
 
 
 
