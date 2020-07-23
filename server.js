@@ -1,3 +1,6 @@
+require('dotenv').config({path: __dirname + '/environment.env'})
+require('https').globalAgent.options.ca = require('ssl-root-cas').create();
+
 var express = require('express'),
 app = express(),
 port = process.env.PORT || 5000;
@@ -10,19 +13,12 @@ var MongoClient = require('mongodb').MongoClient;
 //var url = "mongodb://localhost:27017/myApp";
 var bodyParser = require('body-parser');
 
-MongoClient.connect(url, function(err, db) {
-    if (err) throw err;
+var options = {
+  // sslValidate: false
+};
 
-    // let categories = [
-    //     {name: 'One', _id: 0},
-    //     {name: 'Two', _id: 1},
-    //     {name: 'Three', _id: 2},
-    //     {name: 'Four', _id: 3},
-    // ]
-    // db.db('myApp').collection('categories').insertMany(categories,(err, response) => {
-    //     console.log(err)
-    //     console.log(response)
-    // })
+MongoClient.connect(url, options, function(err, db) {
+    if (err) throw err;
     
     app.locals.db = db.db('myApp')
 });
@@ -30,12 +26,12 @@ MongoClient.connect(url, function(err, db) {
 http.createServer(function (req, res) {
     res.writeHead(200, {'Content-Type': 'text/plain'});
     res.end('Hello World!');
-  }).listen(80);
+  }).listen(8081);
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-var routes = require('./api/routes/usersRoutes')
+var routes = require('./api/routes')
 routes(app)
 
 app.listen(port);

@@ -1,4 +1,5 @@
 var bcrypt = require('bcryptjs');
+const sgMail = require('@sendgrid/mail');
 
 exports.encryptPass = (password, callback) => {
     try {
@@ -115,5 +116,48 @@ exports.getNextSequence = (db, name) => {
     })
     
 
+    
+}
+
+
+
+exports.sendMail = (msgDetails) => {
+    sgMail.setApiKey('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');
+
+    let msg = {
+        to: 'mahajan8sm@gmail.com',
+        from: 'mahajan8sm.3@gmail.com', // Use the email address or domain you verified above
+        subject: 'Sending Test Mail',
+        text: 'Your OTP is 555555',
+    };
+
+    msg = {
+        ...msg,
+        ...msgDetails
+    }
+
+    return new Promise((resolve, reject) => {
+        sgMail
+        .send(msg)
+        .then(() => {
+            resolve()
+        }, error => {
+            console.error(error);
+
+            if (error.response) {
+                reject(error.response.body)
+            }
+        });
+    })
+}
+
+exports.generateOTP = () =>{
+
+    var digits = '0123456789'; 
+    let OTP = ''; 
+    for (let i = 0; i < 4; i++ ) { 
+        OTP += digits[Math.floor(Math.random() * 10)]; 
+    } 
+    return OTP; 
     
 }

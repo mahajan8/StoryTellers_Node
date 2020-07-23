@@ -25,7 +25,8 @@ exports.addStory = function(req, res) {
                     category: category,
                     title: req.body.title,
                     start: req.body.story,
-                    views: 0
+                    views: 0,
+                    createdAt: new Date()
                 }
 
                 Utils.getNextSequence(db, 'story')
@@ -113,18 +114,33 @@ exports.addStoryReply = function(req, res) {
 exports.getStories = function(req, res) {
 
     try {
-
+        
         let db = req.app.locals.db
         let collection = db.collection('storylist')
+
+        let sortOptions = {'createdAt': 1}
+        let sorts = ['createdAt', 'views', 'title']
+
+        let categories = true
+
+        if(req.body.sort>=0) {
+            sortOptions = {
+                [`${sorts[req.body.sort]}`] : req.body.desc? -1 : 1
+            }
+        }
+
+        if(req.body.categories) {
+            categories = {'$in': ['$$category', req.body.categories]}
+        }
 
         collection.aggregate([
             { $lookup:
                 {
                     from: 'userProfile',
-                    let: {userId: '$userId'} ,
+                    let: {userId: '$userId', category: '$category'} ,
                     as: 'userInfo',
                     pipeline: [
-                        {$match: {'$expr': {'$eq': ['$user_id', '$$userId']}}},
+                        {$match: {'$expr': { '$and' : [ {'$eq': ['$user_id', '$$userId']}, categories ] } }},
 
                         {$project: {
                             _id: 0, 
@@ -136,15 +152,12 @@ exports.getStories = function(req, res) {
                 }
             },
             {$unwind: '$userInfo'},
-            {$sort: {views:-1}}
+            {$sort: sortOptions}
             ]).toArray((err, response)=> {
             if(err) throw err;
 
             res.send({status: true, response: response})
         })
-
-        
-        
 
     } catch(err) {
         res.status(500).send({status: false, message: 'Could not fetch Stories. Try again later.'});
@@ -155,7 +168,7 @@ exports.getStoryDetails = function(req, res) {
 
     try {
 
-        const {storyId} = req.body
+        const {storyId, view} = req.body
 
         let db = req.app.locals.db
         let collection = db.collection('story')
@@ -190,7 +203,7 @@ exports.getStoryDetails = function(req, res) {
             ]).toArray((err, response)=> {
                 if(err) throw err;
 
-                db.collection('storylist').findAndModify( { _id: Number(storyId) }, null, { $inc: { views: 1 } }, function(err, result){
+                db.collection('storylist').findAndModify( { _id: Number(storyId) }, null, { $inc: { views: Number(view) } }, function(err, result){
                     if(err) throw err;
                 } );
                 if(!response.length) {
