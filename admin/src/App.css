@@ -1,0 +1,14 @@
+
+.header {
+  background-color: aquamarine;
+  font-size: x-large;
+  font-weight: bold;
+  text-align: center;
+  padding: 3%;
+}
+
+.login {
+  align-items: center;
+  text-align: center;
+  margin-top: 5%;
+}

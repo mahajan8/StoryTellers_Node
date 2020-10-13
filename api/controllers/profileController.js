@@ -69,9 +69,9 @@ exports.editProfile = function(req, res) {
 
 exports.uploadPic = function(req, res) {
     try {
-
+        console.log(req)
+        console.log('Image Pick')
         var singleUpload = upload.single('image')
-
         singleUpload(req,res, (err) => {
             if(err) throw err;
 

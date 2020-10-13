@@ -118,14 +118,21 @@ exports.getStories = function(req, res) {
         let db = req.app.locals.db
         let collection = db.collection('storylist')
 
-        let sortOptions = {'createdAt': 1}
+        let sortOptions = {'createdAt': -1}
         let sorts = ['createdAt', 'views', 'title']
 
         let categories = true
 
+        if(req.body.sort==2) {
+            req.body = {
+                ...req.body,
+                desc: !req.body.desc
+            }
+        }
+
         if(req.body.sort>=0) {
             sortOptions = {
-                [`${sorts[req.body.sort]}`] : req.body.desc? -1 : 1
+                [`${sorts[req.body.sort]}`] : req.body.desc? 1 : -1
             }
         }
 
@@ -153,7 +160,7 @@ exports.getStories = function(req, res) {
             },
             {$unwind: '$userInfo'},
             {$sort: sortOptions}
-            ]).toArray((err, response)=> {
+            ],{collation: {locale: 'en_US'}}).toArray((err, response)=> {
             if(err) throw err;
 
             res.send({status: true, response: response})
